@@ -1,0 +1,1 @@
+CREATE VIEW viewMostAppArtists AS SELECT tblArtists.ID, tblArtists.Artist, tblArtists.Genre, tblArtists.Type, tblArtists.Sex, COUNT(tblArtistsSongs.Artist_ID) AS Appearances FROM tblArtists INNER JOIN tblArtistsSongs ON tblArtistsSongs.Artist_ID = tblArtists.ID GROUP BY tblArtists.ID, tblArtists.Artist, tblArtists.Genre, tblArtists.Type, tblArtists.Sex;
