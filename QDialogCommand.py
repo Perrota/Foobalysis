@@ -44,6 +44,7 @@ class Ui_sqlDialog(object):
 
         def show_popup(Success):
             QMessageBox = QtWidgets.QMessageBox()
+            QMessageBox.setWindowIcon(QtGui.QIcon(path.join(path.dirname(__file__), 'fobalisis.ico')))
             if Success:
                 QMessageBox.setWindowTitle('Done')
                 QMessageBox.setIcon(QtWidgets.QMessageBox.Information)

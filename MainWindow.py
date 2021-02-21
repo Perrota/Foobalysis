@@ -260,6 +260,7 @@ class Ui_MainWindow(object):
         def show_popup(number_of_updates):
             MsgBox_QMessageBox = QtWidgets.QMessageBox()
             MsgBox_QMessageBox.setWindowTitle('Update')
+            MsgBox_QMessageBox.setWindowIcon(QtGui.QIcon(path.join(self.ThisFilePath_String, 'foobalisis.ico')))
             MsgBox_QMessageBox.setText(f'{number_of_updates} record(s) have been updated correctly.')
             MsgBox_QMessageBox.setIcon(QtWidgets.QMessageBox.Information)
             MsgBox_QMessageBox.exec_()
