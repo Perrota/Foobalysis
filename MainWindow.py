@@ -203,9 +203,9 @@ class Ui_MainWindow(object):
         sqlDialog.exec_()
 
     def FindDupes_QAction_onButtonClick(self):
-        self.Duplicates_Thread = DuplicateFinder_QThread()
+        self.Duplicates_Thread = DuplicateFinder_QThread(self.dbConn)
         self.Duplicates_Thread.CountChanged_pyqtSignal.connect(self.FindDupes_QAction_onUpdate)
-        self.Duplicates_Thread.Finished_pyqtSignal.connect(self.display_dupes)
+        self.Duplicates_Thread.Finished_pyqtSignal.connect(self.FindDupes_QAction_onFinish)
         self.Duplicates_Thread.start()
         self.FindDupes_QAction.setText("Show All")
         self.Genre_QComboBox.setEnabled(False)
@@ -352,28 +352,32 @@ class DuplicateFinder_QThread(QtCore.QThread):
     CountChanged_pyqtSignal = QtCore.pyqtSignal(int)
     Finished_pyqtSignal = QtCore.pyqtSignal(bool)
     
+    def __init__(self, MusicDatabaseConnection):
+        QtCore.QThread.__init__(self)
+        self.dbConn = MusicDatabaseConnection
+
     def run(self):
         
         # Fuzzie matching
         Letters_List = list(string.ascii_uppercase)
         Dataframes_List = []
         for Letter in Letters_List:
-            LetterDupes_Dataframe = DuplicatesFinder.find_dupes(Letter)
+            LetterDupes_Dataframe = self.dbConn.find_dupes(Letter)
             Dataframes_List.append(LetterDupes_Dataframe)
             self.CountChanged_pyqtSignal.emit(len(Dataframes_List))
         Concated_Dataframe = pd.concat(Dataframes_List)
-        Concated_Dataframe.sort_values('Closest Score', ascending=False, inplace=True)
+        Concated_Dataframe.sort_values('Ratio', ascending=False, inplace=True)
         Concated_Dataframe.reset_index(inplace=True)
         
         # Existing marked
-        DuplicatesFilePath_String = path.join(self.ThisFilePath_String, 'NotDuplicates.csv')
+        DuplicatesFilePath_String = path.join(path.dirname(__file__), 'NotDuplicates.csv')
         NotDuplicates_Dataframe = pd.read_csv(DuplicatesFilePath_String, sep=',', encoding='utf-8', header=None)
 
         # Left anti join
         self.df = Concated_Dataframe.loc[
             (~Concated_Dataframe['Artist'].isin(NotDuplicates_Dataframe.iloc[:, 0]))
             &
-            (~Concated_Dataframe['Closest Artist'].isin(NotDuplicates_Dataframe.iloc[:, 1]))
+            (~Concated_Dataframe['Ratio'].isin(NotDuplicates_Dataframe.iloc[:, 1]))
         ]
 
         self.Finished_pyqtSignal.emit(True)

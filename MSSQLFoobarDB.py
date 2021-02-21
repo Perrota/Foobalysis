@@ -147,17 +147,19 @@ class MusicDatabaseConnection():
     def find_dupes(self, Letter):
 
         Artists_Dataframe = pd.read_sql(
-            f"SELECT tblArtists.Artist, B.Artist AS PossibleMatch FROM tblArtists CROSS JOIN tblArtists AS B WHERE tblArtists.Artist LIKE '{Letter}%'",
+            f"SELECT tblArtists.Artist, B.Artist AS PossibleMatch FROM tblArtists CROSS JOIN tblArtists AS B WHERE tblArtists.Artist LIKE '{Letter}%' AND B.Artist LIKE '{Letter}%'",
             self.Connection
         )
 
-        Artists_List = Artists_Dataframe.Artist.to_list()
-        PossibleMatch_List = Artists_Dataframe.PossibleMatch.to_list()
+        Filtered_Dataframe = Artists_Dataframe.loc[Artists_Dataframe.Artist != Artists_Dataframe.PossibleMatch]
 
-        Ratios_List = [fuzz.ratio(Artist, PossibleMatch) for Artist in Artists_List for PossibleMatch in PossibleMatch_List]
+        Artists_List = Filtered_Dataframe.Artist.to_list()
+        PossibleMatch_List = Filtered_Dataframe.PossibleMatch.to_list()
+
+        Ratios_List = [fuzz.ratio(Artists_List[x], PossibleMatch_List[x]) for x in range(len(Filtered_Dataframe))]
         CompleteRatios_Dataframe = pd.DataFrame({'Artist': Artists_List, 'Match': PossibleMatch_List, 'Ratio': Ratios_List})
 
-        FilteredRatios_Dataframe = CompleteRatios_Dataframe.loc[df.Ratio > 82.5]
+        FilteredRatios_Dataframe = CompleteRatios_Dataframe.loc[CompleteRatios_Dataframe.Ratio > 82.5]
 
         return FilteredRatios_Dataframe
 
