@@ -1,5 +1,6 @@
 /.git
 /.vscode
 /__pycache__
+/env37
 /GUIs
 *.jpg
