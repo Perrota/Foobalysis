@@ -1,8 +1,5 @@
-.git
-.vscode
-__pycache__
-GUIs/
-dbDiagram.jpg
-input.jpg
-output.jpg
-mainw.jpg
+/.git
+/.vscode
+/__pycache__
+/GUIs
+*.jpg
