@@ -7,7 +7,7 @@ It effectively turns this:
 
 Into this:
 
-![Final Result](Output.jpg)
+![Final Result](output.jpg)
 
 Along with other smaller and complementary tasks...
 
