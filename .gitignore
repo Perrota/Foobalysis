@@ -1,0 +1,8 @@
+# Caches, pictures and userdata
+.vscode
+__pycache__
+GUIs/
+dbDiagram.jpg
+input.jpg
+output.jpg
+mainw.jpg
