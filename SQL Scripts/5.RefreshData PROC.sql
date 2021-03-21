@@ -116,9 +116,9 @@ AS
                 INNER JOIN tblSongs
                     ON tblSongs.Album_ID = tblAlbums.ID
                     AND tblSongs.Song = tblNew.Song
-	GROUP BY
-        	tblSongs.ID,
-        	FeatArtist.ID
+        GROUP BY
+                tblSongs.ID,
+                FeatArtist.ID
 
     )
 

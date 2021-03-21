@@ -40,6 +40,7 @@ CREATE TABLE tblRaw(
     Added DATE,
     Played SMALLINT,
     Artists VARCHAR(MAX)
+    CONSTRAINT PK_tblRaw_Composite PRIMARY KEY (Album, Duration, Year, Song, Rating, Genre, AlbumArtist, Added, Played, Artists)
 )
 
 CREATE TABLE tblOld(

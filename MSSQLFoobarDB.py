@@ -128,11 +128,13 @@ class MusicDatabaseConnection():
         pdNew = pdMerged.loc[pd.isna(pdMerged.ID)]
         del pdNew['ID']
         del pdNew['Index']
+        del pdNew['Locked']
         pdNew.to_sql('tblNew', self.Connection, if_exists='append', index=False)
 
-        pdOld = pdMerged.loc[pd.isna(pdMerged.Index)]
+        pdOld = pdMerged.loc[(pd.isna(pdMerged.Index))&(pdMerged.Locked != 1)]
         del pdOld['ID']
         del pdOld['Index']
+        del pdOld['Locked']
         pdOld.to_sql('tblOld', self.Connection, if_exists='append', index=False)
 
         Session = orm.sessionmaker()
