@@ -1,16 +1,19 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from os import path
+from FoobarDatabase import Database
+from Programs import foobar2000
 
 class Ui_Dialog(object):
 
     def setupUi(self, Dialog, dbConn):
 
-        self.dbConn = dbConn
+        Server = dbConn
+        self.db = Database(Server)
 
         # Window
         Dialog.setObjectName("Dialog")
         Dialog.setFixedSize(242, 255)
-        Dialog.setWindowIcon(QtGui.QIcon(path.join(path.dirname(__file__), 'fobalisis.ico')))
+        Dialog.setWindowIcon(QtGui.QIcon(path.join(path.dirname(path.dirname(__file__)), 'fobalisis.ico')))
         Dialog.setWindowTitle("Library Scraper")
 
         # Frame
@@ -88,14 +91,17 @@ class Ui_Dialog(object):
 
     def generate_csv(self):
 
+        # Initial
+        Foobar = foobar2000(2)
+
         # Progress
         self.Start_QPushButton.setEnabled(False)
         self.Exit_QPushButton.setEnabled(False)
         self.QProgressBar.setValue(1)
         if self.FailSafe_QLineEdit.text() != "":
-            self.dbConn.scrape(Method=self.Mode, FailSafeNumber=self.FailSafe_QLineEdit.text(), Location=self.Path_QLineEdit.text())
+            Foobar.scrape(self.db, FailSafeNumber=self.FailSafe_QLineEdit.text(), Location=self.Path_QLineEdit.text())
         else:
-            self.dbConn.scrape(Method=self.Mode, Location=self.Path_QLineEdit.text())
+            Foobar.scrape(self.db, Method=self.Mode, Location=self.Path_QLineEdit.text())
 
         # Completion
         self.QProgressBar.setValue(2)

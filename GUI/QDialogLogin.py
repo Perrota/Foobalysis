@@ -1,13 +1,14 @@
 #! C:\Users\Marcelo\Documents\Documentos\Portfolio\Access\Musica2\env37\Scripts\python.exe
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from MSSQLFoobarDB import MusicDatabaseConnection
+from SQLServer import Server
+from FoobarDatabase import Database
 import os
 import json
 
 class Ui_EntryWindow(QtWidgets.QDialog):
     
-    CurrentPath_String = os.path.dirname(__file__)
+    CurrentPath_String = os.path.dirname(os.path.dirname(__file__))
     ConfigFile_String = os.path.join(CurrentPath_String, 'Config.json')
     LoadData_pyqtSignal = QtCore.pyqtSignal()
 
@@ -84,16 +85,17 @@ class Ui_EntryWindow(QtWidgets.QDialog):
 
     def attempt_connection(self):
     
-        self.MusicConn = MusicDatabaseConnection(self.Server_String, self.Database_String)
-        try:
-            self.MusicConn.connect()
-            HasCorrectStructure_Boolean = self.MusicConn.check_structure()
-            if HasCorrectStructure_Boolean:
-                self.open_main()
-            else:
-                self.display_repair_message()
-        except:
-            self.display_error_message("Couldn't connect to SQL Server.")
+        self.Server = Server(self.Server_String, self.Database_String)
+        # try:
+        self.Server.connect()
+        self.Database = Database(self.Server)
+        HasCorrectStructure_Boolean = self.Database.check_structure()
+        if HasCorrectStructure_Boolean:
+            self.open_main()
+        else:
+            self.display_repair_message()
+        # except:
+        #     self.display_error_message("Couldn't connect to SQL Server.")
 
     def display_error_message(self, ErrorMessage):
         QMessageBox = QtWidgets.QMessageBox()

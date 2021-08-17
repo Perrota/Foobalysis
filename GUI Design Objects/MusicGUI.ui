@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>541</width>
+    <height>539</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Musica</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="frmMusicDatabase">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>10</y>
+      <width>481</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Music Database</string>
+    </property>
+    <widget class="QLabel" name="lblArtists">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>There are xxxx artists in the database.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblOnline">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>121</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>The database is online.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblAlbums">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>There are xxxx albums in the database.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblSongs">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>There are xxxx songs in the database.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblSongs_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>291</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>There are xxxx pairs of songs-artists data in the database.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblGreenIndicator">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>10</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>greenInd.png</pixmap>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblRedIndicator">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>10</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>redInd.png</pixmap>
+     </property>
+    </widget>
+    <zorder>lblRedIndicator</zorder>
+    <zorder>lblArtists</zorder>
+    <zorder>lblOnline</zorder>
+    <zorder>lblAlbums</zorder>
+    <zorder>lblSongs</zorder>
+    <zorder>lblSongs_2</zorder>
+    <zorder>lblGreenIndicator</zorder>
+   </widget>
+   <widget class="QTableView" name="tblViewArtists">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>180</y>
+      <width>501</width>
+      <height>271</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>460</y>
+      <width>481</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QComboBox" name="cmbGenre"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbType"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbSex"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cmdUpdate">
+       <property name="text">
+        <string>Update</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>150</y>
+      <width>481</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>24</number>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>541</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuInteractions">
+    <property name="title">
+     <string>Interactions</string>
+    </property>
+    <addaction name="actionGenerate_CSV"/>
+    <addaction name="actionEnable_Video_Player"/>
+    <addaction name="actionOpen_Music_Dashboard"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuArtists">
+     <property name="title">
+      <string>Artists</string>
+     </property>
+     <addaction name="actionShow_All"/>
+    </widget>
+    <addaction name="actionFind_Potential_Duplicates"/>
+    <addaction name="menuArtists"/>
+   </widget>
+   <addaction name="menuInteractions"/>
+   <addaction name="menuView"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionGenerate_CSV">
+   <property name="text">
+    <string>Generate CSV</string>
+   </property>
+  </action>
+  <action name="actionEnable_Video_Player">
+   <property name="text">
+    <string>Enable Video Player</string>
+   </property>
+  </action>
+  <action name="actionOpen_Music_Dashboard">
+   <property name="text">
+    <string>Open Music Dashboard</string>
+   </property>
+  </action>
+  <action name="actionFind_Potential_Duplicates">
+   <property name="text">
+    <string>Potential Duplicates</string>
+   </property>
+  </action>
+  <action name="actionShow_All">
+   <property name="text">
+    <string>Show All</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

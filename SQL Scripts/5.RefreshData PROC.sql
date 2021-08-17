@@ -2,133 +2,119 @@ CREATE PROCEDURE RefreshData
 
 AS
 
-    --ADDING NEW ARTISTS
-    DECLARE @tags VARCHAR(MAX) = STUFF( (SELECT '/' + Artists AS [text()] FROM tblNew FOR XML PATH ('') ), 1, 1, '' );
+    --UNIQUE TIMESTAMP
+    DECLARE @TimeStamp DATETIME = GETDATE()
 
-    WITH New_Artists AS (
+    --ADDING NEW ARTISTS
+    INSERT INTO tblLog (TimeStamp, Operation, [Value]) (
+
         SELECT
-            REPLACE(value, '&amp;', '&') AS Artist
+            @TimeStamp AS TimeStamp,
+            'Artist Added' AS Operation,
+            Artist AS [Values]
         FROM
-            STRING_SPLIT(@tags, '/')
-        GROUP BY
-            REPLACE(value, '&amp;', '&')
+            viewNewArtists
+
     )
 
     INSERT INTO tblArtists (Artist, Genre) (
 
-        SELECT
-            Artist,
-            tblNew.Genre
-        FROM
-            New_Artists LEFT JOIN tblNew ON tblNew.AlbumArtist = Artist
-        WHERE
-            Artist NOT IN (SELECT Artist FROM tblArtists GROUP BY Artist)
-        GROUP BY
-            Artist,
-            tblNew.Genre
+        SELECT * FROM viewNewArtists
 
     )
 
     --ADDING NEW ALBUMS
-    INSERT INTO tblAlbums (Album, Year, Added, Artist_ID) (
+    INSERT INTO tblLog (TimeStamp, Operation, [Value]) (
 
         SELECT
-            tblNew.Album,
-            MAX(tblNew.Year) AS Year,
-            MAX(tblNew.Added) AS Added,
-            tblArtists.ID AS Artist_ID
+            @TimeStamp AS TimeStamp,
+            'Album Added' AS Operation,
+            Album AS [Values]
         FROM
-            tblNew
-                INNER JOIN tblArtists
-                    ON tblArtists.Artist = tblNew.AlbumArtist
-                FULL OUTER JOIN tblAlbums
-                    ON tblAlbums.Album = tblNew.Album
-                    AND tblAlbums.Artist_ID = tblArtists.ID
-        WHERE
-            tblAlbums.ID IS NULL
-        GROUP BY
-            tblAlbums.ID,
-            tblNew.Album,
-            tblArtists.ID
+            viewNewAlbums
+
+    )
+
+    INSERT INTO tblAlbums (Album, Year, Added, Artist_ID) (
+
+        SELECT * FROM viewNewAlbums
 
     )
 
     --DELETING OLD SONGS
-    DELETE FROM tblSongs
-    WHERE ID IN (
+    INSERT INTO tblLog (TimeStamp, Operation, [Value])(
+
         SELECT
-            tblSongs.ID
+            @TimeStamp AS TimeStamp,
+            'Song Deleted' AS Operation,
+            Song AS [Values]
         FROM
-            tblOld
-                INNER JOIN tblArtists
-                    ON tblArtists.Artist = tblOld.AlbumArtist
-                INNER JOIN tblAlbums
-                    ON tblArtists.ID = tblAlbums.Artist_ID
-                    AND tblOld.Album = tblAlbums.Album
-                INNER JOIN tblSongs
-                    ON tblSongs.Album_ID = tblAlbums.ID
-                    AND tblSongs.Song = tblOld.Song
+            viewOldSongs
+
     )
 
+    DELETE FROM tblSongs
+    WHERE ID IN (SELECT ID FROM viewOldSongs)
+
     --ADDING NEW SONGS
-    INSERT INTO tblSongs (Album_ID, Song, Duration, Played, Rating) (
+    INSERT INTO tblLog (TimeStamp, Operation, [Value])(
 
         SELECT
-            tblAlbums.ID AS Album_ID,
-            tblNew.Song,
-            tblNew.Duration,
-            tblNew.Played,
-            tblNew.Rating
+            @TimeStamp AS TimeStamp,
+            'Song Added' AS Operation,
+            Song AS [Values]
         FROM
-            tblNew
-                INNER JOIN tblArtists
-                    ON tblArtists.Artist = tblNew.AlbumArtist
-                INNER JOIN tblAlbums
-                    ON tblAlbums.Album = tblNew.Album
-                    AND tblAlbums.Artist_ID = tblArtists.ID
-                FULL OUTER JOIN tblSongs
-                    ON tblSongs.Song = tblNew.Song
-                    AND tblSongs.Duration = tblNew.Duration
-                    AND tblSongs.Played = tblNew.Played
-                    AND tblSongs.Rating = tblNew.Rating
-                    AND tblSongs.Album_ID = tblAlbums.ID
-        WHERE
-            tblSongs.ID IS NULL
+            viewNewSongs
+
+    )
+
+    INSERT INTO tblSongs (Album_ID, Song, Duration, Played, Rating) (
+
+        SELECT * FROM viewNewSongs
 
     )
 
     --ADDING PARTICIPATIONS
+    INSERT INTO
+        tblLog (TimeStamp, Operation, [Value])
+    VALUES
+        (@TimeStamp, 'Participations Added', (SELECT COUNT(*) FROM viewNewFeatures))
+
     INSERT INTO tblArtistsSongs (Song_ID, Artist_ID) (
 
-        SELECT
-            tblSongs.ID AS Song_ID,
-            FeatArtist.ID AS Artist_ID
-        FROM
-            tblNew
-                CROSS APPLY STRING_SPLIT(tblNew.Artists, '/')
-                INNER JOIN tblArtists AS FeatArtist
-                    ON FeatArtist.Artist = value
-                INNER JOIN tblArtists AS AlbumArtist
-                    ON AlbumArtist.Artist = tblNew.AlbumArtist
-                INNER JOIN tblAlbums
-                    ON tblAlbums.Artist_ID = AlbumArtist.ID
-                    AND tblAlbums.Album = tblNew.Album
-                INNER JOIN tblSongs
-                    ON tblSongs.Album_ID = tblAlbums.ID
-                    AND tblSongs.Song = tblNew.Song
-        GROUP BY
-                tblSongs.ID,
-                FeatArtist.ID
+        SELECT * FROM viewNewFeatures
 
     )
 
     --DELETING ALBUMS
+    INSERT INTO tblLog (TimeStamp, Operation, [Value])(
+
+        SELECT
+            @TimeStamp AS TimeStamp,
+            'Album Removed' AS Operation,
+            Album AS [Values]
+        FROM
+            viewOldAlbums
+
+    )
+
     DELETE FROM tblAlbums
-    WHERE ID IN (SELECT tblAlbums.ID FROM tblAlbums LEFT JOIN tblSongs ON tblSongs.Album_ID = tblAlbums.ID GROUP BY tblAlbums.ID, tblAlbums.Album HAVING COUNT(tblSongs.ID) = 0)
+    WHERE ID IN (SELECT ID FROM viewOldAlbums)
 
     --DELETING ARTISTS
+    INSERT INTO tblLog (TimeStamp, Operation, [Value])(
+
+        SELECT
+            @TimeStamp AS TimeStamp,
+            'Artist Removed' AS Operation,
+            Artist AS [Values]
+        FROM
+            viewOldArtists
+
+    )
+
     DELETE FROM tblArtists
-    WHERE ID IN (SELECT tblArtists.ID FROM tblArtists LEFT JOIN tblArtistsSongs ON tblArtists.ID = tblArtistsSongs.Artist_ID LEFT JOIN tblAlbums ON tblArtists.ID = tblAlbums.Artist_ID GROUP BY tblArtists.ID HAVING COUNT(tblArtistsSongs.Song_ID) = 0 AND COUNT(tblAlbums.ID) = 0)
+    WHERE ID IN (SELECT ID FROM viewOldArtists)
 
     --DELETING FROM RAW
     DELETE FROM tblRaw
@@ -144,9 +130,11 @@ AS
     )
 
     --ADDING TO RAW
-    INSERT INTO tblRaw (Album, Duration, Year, Song, Rating, Genre, AlbumArtist, Added, Played, Artists) (
+    DECLARE @LastID INT = (SELECT MAX(ID) FROM tblRaw)
+    INSERT INTO tblRaw (ID, Album, Duration, Year, Song, Rating, Genre, AlbumArtist, Added, Played, Artists, Locked) (
 
         SELECT
+            ROW_NUMBER() OVER (ORDER BY Song) + @LastID AS ID,
             tblNew.Album,
             tblNew.Duration,
             tblNew.Year,
@@ -156,7 +144,8 @@ AS
             tblNew.AlbumArtist,
             tblNew.Added,
             tblNew.Played,
-            tblNew.Artists
+            tblNew.Artists,
+            0 AS Locked
         FROM
             tblNew
 
@@ -165,6 +154,3 @@ AS
     --EMPTYING NEW AND OLD TABLES
     DELETE FROM tblNew
     DELETE FROM tblOld
-
-    --LOG CYCLE
-    INSERT INTO tblLog VALUES (GETDATE())

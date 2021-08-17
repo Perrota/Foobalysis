@@ -2,13 +2,15 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from os import path, startfile
-from MSSQLFoobarDB import MusicDatabaseConnection
+from SQLServer import Server
+from FoobarDatabase import Database
 import pandas as pd
 import Programs
-from QDialogViews import Ui_viewsDialog
-from QDialogScraper import Ui_Dialog
-from QDialogCommand import Ui_sqlDialog
-from QDialogLogin import Ui_EntryWindow
+from GUI.QDialogViews import Ui_viewsDialog
+from GUI.QDialogScraper import Ui_Dialog
+from GUI.QDialogCommand import Ui_sqlDialog
+from GUI.QDialogLogin import Ui_EntryWindow
+from GUI.QDialogLock import Ui_LockDialog
 from PandasModel import Model
 import string
 import csv
@@ -44,6 +46,11 @@ class Ui_MainWindow(object):
         View_QMenu.setObjectName("View_QMenu")
         View_QMenu.setTitle("View")
         QMenuBar.addAction(View_QMenu.menuAction())
+
+        Tools_QMenu = QtWidgets.QMenu(QMenuBar)
+        Tools_QMenu.setObjectName("Tools_QMenu")
+        Tools_QMenu.setTitle("Tools")
+        QMenuBar.addAction(Tools_QMenu.menuAction())
 
         # Generate CSV button config
         Scrape_QAction = QtWidgets.QAction(MainWindow)
@@ -82,6 +89,12 @@ class Ui_MainWindow(object):
         CustomView_QAction.setText("Custom View...")
         CustomView_QAction.triggered.connect(self.CustomView_QAction_onButtonClick)
 
+        # Locks button config
+        Lock_QAction = QtWidgets.QAction(MainWindow)
+        Lock_QAction.setObjectName("Lock_QAction")
+        Lock_QAction.setText("Lock albums")
+        Lock_QAction.triggered.connect(self.Lock_QAction_onButtonClick)
+
         # Add buttons to the Interactions menu
         Interactions_QMenu.addAction(Scrape_QAction)
         Interactions_QMenu.addAction(self.PlayVideo_QAction)
@@ -91,6 +104,9 @@ class Ui_MainWindow(object):
         # Add buttons to the View menu
         View_QMenu.addAction(self.FindDupes_QAction)
         View_QMenu.addAction(CustomView_QAction)
+
+        # Add button to the Tool menu
+        Tools_QMenu.addAction(Lock_QAction)
 
         # Database frame
         MusicDatabase_QGroupBox = QtWidgets.QGroupBox(self.CentralWidget)
@@ -248,6 +264,13 @@ class Ui_MainWindow(object):
         viewDialog.show()
         viewDialog.exec_()
 
+    def Lock_QAction_onButtonClick(self):
+        lockDialog = QtWidgets.QDialog()
+        ui = Ui_LockDialog()
+        ui.setupUi(lockDialog, self.dbConn)
+        lockDialog.show()
+        lockDialog.exec_()
+
     def Update_QPushButton_onButtonClick(self):
 
         def get_selected_IDs():
@@ -300,16 +323,17 @@ class Ui_MainWindow(object):
         QDialog.show()
         QDialog.exec_()
 
-    def load_information(self, Server, Database):
+    def load_information(self, ServerName, DatabaseName):
 
         # Load Tables
-        self.dbConn = MusicDatabaseConnection(Server, Database)
+        self.dbConn = Server(ServerName, DatabaseName)
         self.dbConn.connect()
+        db = Database(self.dbConn)
 
-        self.tblArtists = self.dbConn.load_table('tblArtists')
-        self.tblAlbums = self.dbConn.load_table('tblAlbums')
-        self.tblSongs = self.dbConn.load_table('tblSongs')
-        self.tblArtistsSongs = self.dbConn.load_table('tblArtistsSongs')
+        self.tblArtists = db.load_table('tblArtists')
+        self.tblAlbums = db.load_table('tblAlbums')
+        self.tblSongs = db.load_table('tblSongs')
+        self.tblArtistsSongs = db.load_table('tblArtistsSongs')
 
         # Text indicators
         self.Online_QLabel.setText("The database is online.")
@@ -319,7 +343,7 @@ class Ui_MainWindow(object):
         self.SongsArtists_QLabel.setText(f"There are {self.tblArtistsSongs.count_records()} pairs of songs-artists data in the database.")
 
         # Table data
-        CommonArtists_DataFrame = pd.read_sql('SELECT * FROM viewMostAppArtists ORDER BY Appearances DESC',  self.tblArtists.Connection)
+        CommonArtists_DataFrame = pd.read_sql('SELECT * FROM viewMostAppArtists ORDER BY Appearances DESC', self.dbConn.Connection)
         self.Model = Model(CommonArtists_DataFrame.iloc[:, :5])
         self.QTableView.setModel(self.Model)
         self.QTableView.resizeColumnsToContents()
@@ -332,7 +356,7 @@ class Ui_MainWindow(object):
         self.Sex_QComboBox.addItems(self.tblArtists.get_sex_list())
 
         # Status Bar
-        self.QStatusBar.showMessage(f'Last Update: {self.tblArtists.get_last_scrape()}')
+        self.QStatusBar.showMessage(f'Last Update: {db.get_last_scrape()}')
 
 
 class VideoPlayer_QThread(QtCore.QThread):
