@@ -4,3 +4,4 @@
 /env37
 /GUIs
 *.jpg
+/GUI/__pycache__

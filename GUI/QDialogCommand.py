@@ -11,7 +11,7 @@ class Ui_sqlDialog(object):
         sqlDialog.setObjectName("sqlDialog")
         sqlDialog.setFixedSize(400, 95)
         sqlDialog.setWindowTitle("Run Command...")
-        sqlDialog.setWindowIcon(QtGui.QIcon(path.join(path.dirname(__file__), 'fobalisis.ico')))
+        sqlDialog.setWindowIcon(QtGui.QIcon(path.join(path.dirname(path.dirname(__file__)), 'fobalisis.ico')))
 
         # Label
         Command_QLabel = QtWidgets.QLabel(sqlDialog)

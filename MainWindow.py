@@ -3,7 +3,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from os import path, startfile
 from SQLServer import Server
-from FoobarDatabase import Database
+from FoobarDatabase import AppDB
 import pandas as pd
 import Programs
 from GUI.QDialogViews import Ui_viewsDialog
@@ -193,7 +193,7 @@ class Ui_MainWindow(object):
     def Scrape_QAction_onButtonClick(self):
         QDialog = QtWidgets.QDialog()
         ui = Ui_Dialog()
-        ui.setupUi(QDialog, self.dbConn)
+        ui.setupUi(QDialog, self.FoobarDB)
         QDialog.show()
         QDialog.exec_()
 
@@ -214,12 +214,12 @@ class Ui_MainWindow(object):
     def RunCMD_QAction_onButtonClick(self):
         sqlDialog = QtWidgets.QDialog()
         ui = Ui_sqlDialog()
-        ui.setupUi(sqlDialog, self.dbConn)
+        ui.setupUi(sqlDialog, self.FoobarDB)
         sqlDialog.show()
         sqlDialog.exec_()
 
     def FindDupes_QAction_onButtonClick(self):
-        self.Duplicates_Thread = DuplicateFinder_QThread(self.dbConn)
+        self.Duplicates_Thread = DuplicateFinder_QThread(self.FoobarDB)
         self.Duplicates_Thread.CountChanged_pyqtSignal.connect(self.FindDupes_QAction_onUpdate)
         self.Duplicates_Thread.Finished_pyqtSignal.connect(self.FindDupes_QAction_onFinish)
         self.Duplicates_Thread.start()
@@ -258,8 +258,7 @@ class Ui_MainWindow(object):
         
         viewDialog = QtWidgets.QDialog()
         ui = Ui_viewsDialog()
-        ui.setupUi(viewDialog)
-        ui.set_connection(self.tblArtists.Connection)
+        ui.setupUi(viewDialog, self.FoobarDB, self.ThisFilePath_String)
         ui.SQLstatement.connect(viewDialog_onUpdate)
         viewDialog.show()
         viewDialog.exec_()
@@ -267,7 +266,7 @@ class Ui_MainWindow(object):
     def Lock_QAction_onButtonClick(self):
         lockDialog = QtWidgets.QDialog()
         ui = Ui_LockDialog()
-        ui.setupUi(lockDialog, self.dbConn)
+        ui.setupUi(lockDialog, self.FoobarDB)
         lockDialog.show()
         lockDialog.exec_()
 
@@ -326,14 +325,12 @@ class Ui_MainWindow(object):
     def load_information(self, ServerName, DatabaseName):
 
         # Load Tables
-        self.dbConn = Server(ServerName, DatabaseName)
-        self.dbConn.connect()
-        db = Database(self.dbConn)
+        self.FoobarDB = AppDB(Server(ServerName).connect_to(DatabaseName))
 
-        self.tblArtists = db.load_table('tblArtists')
-        self.tblAlbums = db.load_table('tblAlbums')
-        self.tblSongs = db.load_table('tblSongs')
-        self.tblArtistsSongs = db.load_table('tblArtistsSongs')
+        self.tblArtists = self.FoobarDB.load_table('tblArtists')
+        self.tblAlbums = self.FoobarDB.load_table('tblAlbums')
+        self.tblSongs = self.FoobarDB.load_table('tblSongs')
+        self.tblArtistsSongs = self.FoobarDB.load_table('tblArtistsSongs')
 
         # Text indicators
         self.Online_QLabel.setText("The database is online.")
@@ -343,7 +340,7 @@ class Ui_MainWindow(object):
         self.SongsArtists_QLabel.setText(f"There are {self.tblArtistsSongs.count_records()} pairs of songs-artists data in the database.")
 
         # Table data
-        CommonArtists_DataFrame = pd.read_sql('SELECT * FROM viewMostAppArtists ORDER BY Appearances DESC', self.dbConn.Connection)
+        CommonArtists_DataFrame = pd.read_sql('SELECT * FROM viewMostAppArtists ORDER BY Appearances DESC', self.FoobarDB.Connection)
         self.Model = Model(CommonArtists_DataFrame.iloc[:, :5])
         self.QTableView.setModel(self.Model)
         self.QTableView.resizeColumnsToContents()
@@ -356,8 +353,7 @@ class Ui_MainWindow(object):
         self.Sex_QComboBox.addItems(self.tblArtists.get_sex_list())
 
         # Status Bar
-        self.QStatusBar.showMessage(f'Last Update: {db.get_last_scrape()}')
-
+        self.QStatusBar.showMessage(f'Last Update: {self.FoobarDB.get_last_scrape()}')
 
 class VideoPlayer_QThread(QtCore.QThread):
 
@@ -378,7 +374,7 @@ class DuplicateFinder_QThread(QtCore.QThread):
     
     def __init__(self, MusicDatabaseConnection):
         QtCore.QThread.__init__(self)
-        self.dbConn = MusicDatabaseConnection
+        self.FoobarDB = MusicDatabaseConnection
 
     def run(self):
         
@@ -386,7 +382,7 @@ class DuplicateFinder_QThread(QtCore.QThread):
         Letters_List = list(string.ascii_uppercase)
         Dataframes_List = []
         for Letter in Letters_List:
-            LetterDupes_Dataframe = self.dbConn.find_dupes(Letter)
+            LetterDupes_Dataframe = self.FoobarDB.find_dupes(Letter)
             Dataframes_List.append(LetterDupes_Dataframe)
             self.CountChanged_pyqtSignal.emit(len(Dataframes_List))
         Concated_Dataframe = pd.concat(Dataframes_List)

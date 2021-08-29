@@ -2,7 +2,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from SQLServer import Server
-from FoobarDatabase import Database
+from FoobarDatabase import AppDB
 import os
 import json
 
@@ -85,12 +85,11 @@ class Ui_EntryWindow(QtWidgets.QDialog):
 
     def attempt_connection(self):
     
-        self.Server = Server(self.Server_String, self.Database_String)
+        self.Server = Server(self.Server_String)
+        
         # try:
-        self.Server.connect()
-        self.Database = Database(self.Server)
-        HasCorrectStructure_Boolean = self.Database.check_structure()
-        if HasCorrectStructure_Boolean:
+        AppDatabase = AppDB(self.Server.connect_to(self.Database_String))
+        if not AppDatabase.Status == 'Error':
             self.open_main()
         else:
             self.display_repair_message()

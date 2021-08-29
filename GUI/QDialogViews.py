@@ -8,9 +8,9 @@ class Ui_viewsDialog(QtWidgets.QDialog):
 
     SQLstatement = QtCore.pyqtSignal()
 
-    def setupUi(self, viewsDialog, dbConn, ThisFilePath):
+    def setupUi(self, viewsDialog, MusicDB, ThisFilePath):
 
-        self.dbConn = dbConn
+        self.MusicDB = MusicDB
         self.ThisFilePath_String = ThisFilePath
 
         # Dialog window
@@ -114,7 +114,7 @@ class Ui_viewsDialog(QtWidgets.QDialog):
             self.Definition_QPlainTextEdit.setPlainText(JSON_Dictionary[ViewName_String])
 
     def Apply_QPushButton_onButtonClick(self):
-        self.df = pd.read_sql_query(self.Definition_QPlainTextEdit.toPlainText(), self.dbConn.Connection)
+        self.df = pd.read_sql_query(self.Definition_QPlainTextEdit.toPlainText(), self.MusicDB.Connection)
         self.SQLstatement.emit()
     
     def Save_QPushButton_onButtonClick(self):
